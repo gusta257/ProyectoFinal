@@ -38,11 +38,11 @@
         
         let game_width = 800
         let game_height = 600
-        let white = '#FFFFFF'
-        let black = '#000000'
-        let red = '#FF0000'
-        let green = '#00FF2A'
-        let blue = '#0032FF'
+        let white = [255,255,255]
+        let black = [0,0,0]
+        let red = [255,0,0]
+        let green = [0,255,0]
+        let blue = [0,0,255]
         let fps = 60
         let size = 5
         let mutation_rate = 0.2
@@ -66,16 +66,19 @@
         function filled_circle(x,y,radius,color){
             ctx.beginPath();
             ctx.arc(x,y,radius,0,2*Math.PI, false);
-            ctx.fillStyle = color;
-            ctx.strokeStyle = color;
+            let col = 'rgb('+color[0]+','+color[1]+','+color[2]+')'
+          //  console.log(col)
+            ctx.fillStyle = col;
+            ctx.strokeStyle = col;
             ctx.fill();
             ctx.lineWidth = 1;
             ctx.stroke();
         }
 
         function circle(x,y,radius,color){
-            ctx.fillStyle = color;
-            ctx.strokeStyle = color;
+            let col = 'rgb('+color[0]+','+color[1]+','+color[2]+')'
+            ctx.fillStyle =  col;
+            ctx.strokeStyle = col;
             ctx.beginPath();
             ctx.arc(x,y,radius,0,2*Math.PI, false);
             ctx.lineWidth = 5;
@@ -92,7 +95,8 @@
 
         function line(x,y,x2,y2,color,width){
             ctx.beginPath();
-            ctx.fillStyle = color;
+            let col = 'rgb('+color[0]+','+color[1]+','+color[2]+')'
+            ctx.fillStyle = col;
             ctx.lineWidth = width;
             ctx.moveTo(x,y);
             ctx.lineTo(x2,y2);
@@ -179,7 +183,7 @@
                 this.acceleration[1] *= 0
                 this.health -= 0.2
                 let percent_health = this.health/health
-                this.colour = (Math.max(Math.min((1-percent_health)*255,255),0), Math.max(Math.min(percent_health*255,255),0), 0)
+                this.colour = [Math.max(Math.min((1-percent_health)*255,255),0), Math.max(Math.min(percent_health*255,255),0), 0]
                 //this.colour = lerp()
                 this.health = Math.min(health, this.health)
                 if (this.age % 1000 == 0){
@@ -217,18 +221,25 @@
             
             seek(target){
                 let desired_vel = []
-                desired_vel = target.map(function(val,index){
-                    return val - this.position[index]
+                console.log("Target",target)
+                
+                this.position.forEach(function(val,index){
+                    desired_vel[index] = target[index] - val
                 })
                 //desired_vel = numpy.add(target, -this.position)
                 //console.log("Vector mandado desde seek, desired_vel",desired_vel)
-                desired_vel = normalize(desired_vel)*this.max_vel
-                steering_force = desired_vel.map(function(val,index){
-                    return val - this.velocity(index)
+                let norm = normalize(desired_vel)
+                desired_vel[0] = norm[0]*this.max_vel
+                desired_vel[1] = norm[1]*this.max_vel
+                let steering_force = [0,0]
+                this.velocity.forEach(function(val,index){
+                    steering_force[index] = desired_vel[index] - val
                 })
                 //steering_force = numpy.add(desired_vel, -this.velocity) //REVISAR ESTE ADD QUE HACE
                 //console.log("Vector mandado desde seek, steering_force",steering_force)
-                steering_force = normalize(steering_force)*this.max_force
+                let norm2 = normalize(steering_force)
+                steering_force[0] = norm2[0]*this.max_force
+                steering_force[1] = norm2[1]*this.max_force
                 return(steering_force)
             }
 
@@ -238,25 +249,47 @@
                 let bot_x = this.position[0]
                 let bot_y = this.position[1]
                 let item_number = list_of_stuff.length-1
-                for(let i = list_of_stuff.length; i > 0; i--){ //( i in list_of_stuff[::-1]){ // REVISAR ESTE FOR
-                    let item_x = i[0]
-                    let item_y = i[1]
+                list_of_stuff.slice(0).reverse().map(function(val, index){
+                    let item_x = val[0]
+                    let item_y = val[1]
                     let distance = Math.hypot(bot_x-item_x, bot_y-item_y) // REVISAR ESTE MATH HYPOT
+                    console.log("distancia",distance)
                     if(distance < 5){
+                        console.log("Llego");
                         list_of_stuff.pop(item_number)
                         this.health += nutrition[index]
                     }
                     if(distance < closest_distance){
                         closest_distance = distance
-                        closest = i
+                        closest = val
                     } 
                     item_number -=1
-                }
+                }.bind(this));
+                // for(let i = list_of_stuff.length; i > 0; i--){ //( i in list_of_stuff[::-1]){ // REVISAR ESTE FOR
+                //     let item_x = list_of_stuff[i][0]
+                //     let item_y = list_of_stuff[i][1]
+                //     let distance = Math.hypot(bot_x-item_x, bot_y-item_y) // REVISAR ESTE MATH HYPOT
+                //     console.log("distancia",distance)
+                //     if(distance < 5){
+                //         console.log("Llego");
+                //         list_of_stuff.pop(item_number)
+                //         this.health += nutrition[index]
+                //     }
+                //     if(distance < closest_distance){
+                //         closest_distance = distance
+                //         closest = i
+                //     } 
+                //     item_number -=1
+                // }
                 if (closest_distance < this.dna[2+index] ){
+                    let seek = [];
                     seek = this.seek(closest) //# index)
-                    seek *= this.dna[index]
+                    seek[0] *= this.dna[index]
+                    seek[1] *= this.dna[index]
                    // console.log("Vector mandado desde eat, seek",seek)
-                    seek = normalize(seek)*this.max_force
+                    let norm =  normalize(seek);
+                    seek[0] = norm[0] *this.max_force
+                    seek[1] = norm[1] *this.max_force
                     //console.log("mandando aceleration con seek",seek)
                     this.apply_force(seek)
                 }
@@ -300,16 +333,17 @@
             draw_bot(){
                 // PASAR A LO QUE SEA EN JS jaja
                 //console.log('Draw_bot',this.position[0],this.position[1]);
-                filled_circle(parseInt(this.position[0]),parseInt(this.position[1]),10, blue)
-                circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[2])),Math.abs(parseInt(Math.min(2,this.dna[2]))),green)
-                circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[3])),Math.abs(parseInt(Math.min(2,this.dna[3]))),red)
-                line(parseInt(this.position[0]),parseInt(this.position[1]),(parseInt(this.position[0] + (this.velocity[0]*this.dna[0]*25))),green,3)
-                line(parseInt(this.position[0]),parseInt(this.position[1]),(parseInt(this.position[0] + (this.velocity[0]*this.dna[1]*25))),red,2)
+                filled_circle(parseInt(this.position[0]),parseInt(this.position[1]),10, this.colour)
+            //    console.log("Color",this.colour);
+                circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[2])), green) //Math.abs(parseInt(Math.min(2,this.dna[2]))),green)
+                circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[3])),red) //Math.abs(parseInt(Math.min(2,this.dna[3]))),red)
+                line(parseInt(this.position[0]),parseInt(this.position[1]),parseInt(this.position[0] + (this.velocity[1]*this.dna[0]*25)), parseInt(this.position[1] + (this.velocity[1]*this.dna[0]*25)),green,3)
+                line(parseInt(this.position[0]),parseInt(this.position[1]),parseInt(this.position[0] + (this.velocity[1]*this.dna[1]*25)), parseInt(this.position[1] + (this.velocity[1]*this.dna[1]*25)),red,2)
                 // //pygame.gfxdraw.aacircle(gameDisplay, int(self.position[0]), int(self.position[1]), 10, self.colour)
                 //pygame.gfxdraw.filled_circle(gameDisplay, int(self.position[0]), int(self.position[1]), 10, self.colour)
                 //pygame.draw.circle(gameDisplay, green, (int(self.position[0]), int(self.position[1])), abs(int(self.dna[2])), abs(int(min(2, self.dna[2]))))
                 //pygame.draw.circle(gameDisplay, red, (int(self.position[0]), int(self.position[1])), abs(int(self.dna[3])), abs(int(min(2, self.dna[3]))))
-                //pygame.draw.line(gameDisplay, green, (int(self.position[0]), int(self.position[1])), (int(self.position[0] + (self.velocity[0]*self.dna[0]*25)),  , 3)
+                //pygame.draw.line(gameDisplay, green, (int(self.position[0]), int(self.position[1])), (int(self.position[0] + (self.velocity[0]*self.dna[0]*25)),nt(self.position[1] + (self.velocity[1]*self.dna[0]*25)))  , 3)
                 //pygame.draw.line(gameDisplay, red, (int(self.position[0]), int(self.position[1])), (int(self.position[0] + (self.velocity[0]*self.dna[1]*25)), int(self.position[1] + (self.velocity[1]*self.dna[1]*25))), 2)
             }
 
@@ -374,10 +408,10 @@
                 }
             })
             food.forEach(function(val,index){
-                circle(parseInt(val[0]),parseInt(val[1]), 3, '#00FF1F');
+                circle(parseInt(val[0]),parseInt(val[1]), 3, green);
             })
             poison.forEach(function(val,index){
-                circle(parseInt(val[0]),parseInt(val[1]), 3, '#FF0000');
+                circle(parseInt(val[0]),parseInt(val[1]), 3, red);
             })
 
             // REVISASR EL ELEMENTO DE ESTE FOR
