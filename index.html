@@ -97,6 +97,7 @@
             ctx.beginPath();
             let col = 'rgb('+color[0]+','+color[1]+','+color[2]+')'
             ctx.fillStyle = col;
+            ctx.strokeStyle = col;
             ctx.lineWidth = width;
             ctx.moveTo(x,y);
             ctx.lineTo(x2,y2);
@@ -187,7 +188,7 @@
                 //this.colour = lerp()
                 this.health = Math.min(health, this.health)
                 if (this.age % 1000 == 0){
-                    // console.log(this.age, this.dna)
+                    console.log(this.age, this.dna)
                 }
                 this.age += 1
 
@@ -243,7 +244,7 @@
                 return(steering_force)
             }
 
-            eat(list_of_stuff, index){
+            eat(list_of_stuff, food){
                 let closest = null //REVISAR ESTE NONE
                 let closest_distance = Math.max(game_width, game_height)
                 let bot_x = this.position[0]
@@ -253,11 +254,11 @@
                     let item_x = val[0]
                     let item_y = val[1]
                     let distance = Math.hypot(bot_x-item_x, bot_y-item_y) // REVISAR ESTE MATH HYPOT
-                    console.log("distancia",distance)
+                    // console.log("distancia",distance)
                     if(distance < 5){
-                        console.log("Llego");
-                        list_of_stuff.pop(item_number)
-                        this.health += nutrition[index]
+                        // console.log("Llego");
+                        list_of_stuff.splice(item_number,1)
+                        this.health += nutrition[food]
                     }
                     if(distance < closest_distance){
                         closest_distance = distance
@@ -281,11 +282,11 @@
                 //     } 
                 //     item_number -=1
                 // }
-                if (closest_distance < this.dna[2+index] ){
+                if (closest_distance < this.dna[2+food] ){
                     let seek = [];
                     seek = this.seek(closest) //# index)
-                    seek[0] *= this.dna[index]
-                    seek[1] *= this.dna[index]
+                    seek[0] *= this.dna[food]
+                    seek[1] *= this.dna[food]
                    // console.log("Vector mandado desde eat, seek",seek)
                     let norm =  normalize(seek);
                     seek[0] = norm[0] *this.max_force
@@ -372,7 +373,7 @@
                 bots.push(new create_bot(Math.random()*game_width,Math.random()*game_height))
             }
                 
-            if(Math.random()<0.1){
+            if(Math.random()<0.08){
                 
                 food.push([(Math.random() * game_width-boundary_size) + boundary_size, (Math.random() * game_height-boundary_size) + boundary_size])
                 // console.log(food);
