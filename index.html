@@ -116,7 +116,7 @@
 
         function magnitude_calc(vector){
             x = 0
-            console.log("Vector",vector)
+            //console.log("Vector",vector)
             vector.forEach(function(val,index){
                 x += val**2
             })
@@ -165,10 +165,10 @@
             }
 
             update(){
-                console.log("Aceleration", this.acceleration)
+                //console.log("Aceleration", this.acceleration)
                 this.velocity[0] += this.acceleration[0]
                 this.velocity[1] += this.acceleration[1]
-                console.log("Vector mandado desde update, velocity",this.velocity)
+                //console.log("Vector mandado desde update, velocity",this.velocity)
                 let normal = normalize(this.velocity)
                 this.velocity[0] = normal[0]*this.max_vel
                 this.velocity[1] = normal[1]*this.max_vel
@@ -192,7 +192,7 @@
             reproduce(){
                 if (Math.random() < reproduction_rate){
                     bots.push(new create_bot(this.position[0], this.position[1], this.dna))
-                    //console.log("Me reproduje!")
+                    console.log("Me reproduje!")
                 }     
             }
             
@@ -209,8 +209,8 @@
             }
             
             apply_force(force){
-                console.log("LA ACELERACION ES",this.acceleration)
-                console.log("LA FUERZA ES",force)
+                //console.log("LA ACELERACION ES",this.acceleration)
+                //console.log("LA FUERZA ES",force)
                 this.acceleration[0] =  this.acceleration[0] + force[0]
                 this.acceleration[1] =  this.acceleration[1] + force[1]
             }
@@ -221,13 +221,13 @@
                     return val - this.position[index]
                 })
                 //desired_vel = numpy.add(target, -this.position)
-                console.log("Vector mandado desde seek, desired_vel",desired_vel)
+                //console.log("Vector mandado desde seek, desired_vel",desired_vel)
                 desired_vel = normalize(desired_vel)*this.max_vel
                 steering_force = desired_vel.map(function(val,index){
                     return val - this.velocity(index)
                 })
                 //steering_force = numpy.add(desired_vel, -this.velocity) //REVISAR ESTE ADD QUE HACE
-                console.log("Vector mandado desde seek, steering_force",steering_force)
+                //console.log("Vector mandado desde seek, steering_force",steering_force)
                 steering_force = normalize(steering_force)*this.max_force
                 return(steering_force)
             }
@@ -255,9 +255,9 @@
                 if (closest_distance < this.dna[2+index] ){
                     seek = this.seek(closest) //# index)
                     seek *= this.dna[index]
-                    console.log("Vector mandado desde eat, seek",seek)
+                   // console.log("Vector mandado desde eat, seek",seek)
                     seek = normalize(seek)*this.max_force
-                    console.log("mandando aceleration con seek",seek)
+                    //console.log("mandando aceleration con seek",seek)
                     this.apply_force(seek)
                 }
             }
@@ -315,7 +315,7 @@
 
         }
 
-        for(let i=0; i <= 10; i++){
+        for(let i=0; i <= 2; i++){
             let posX = Math.random()*game_width;
             let posY = Math.random()*game_height;
             //console.log("Posiciones iniciales",posX,posY)
@@ -367,7 +367,8 @@
                 bot.draw_bot()
                 //pygame.draw.polygon(gameDisplay, bot.colour, ((bot.position),tuple(map(operator.add,bot.position,(-size,0))),tuple(map(operator.add,bot.position,(-size/2,size)))))
                 if(bot.dead()){
-                    bots.splice(bot)
+                    bots.splice(index,1)
+                    console.log("Me mori",bot)
                 }else{
                     bot.reproduce()
                 }
