@@ -165,8 +165,10 @@
             }
 
             update(){
+                console.log("Aceleration", this.acceleration)
                 this.velocity[0] += this.acceleration[0]
                 this.velocity[1] += this.acceleration[1]
+                console.log("Vector mandado desde update, velocity",this.velocity)
                 let normal = normalize(this.velocity)
                 this.velocity[0] = normal[0]*this.max_vel
                 this.velocity[1] = normal[1]*this.max_vel
@@ -190,7 +192,7 @@
             reproduce(){
                 if (Math.random() < reproduction_rate){
                     bots.push(new create_bot(this.position[0], this.position[1], this.dna))
-                    console.log("Me reproduje!")
+                    //console.log("Me reproduje!")
                 }     
             }
             
@@ -207,7 +209,10 @@
             }
             
             apply_force(force){
-                this.acceleration += force
+                console.log("LA ACELERACION ES",this.acceleration)
+                console.log("LA FUERZA ES",force)
+                this.acceleration[0] =  this.acceleration[0] + force[0]
+                this.acceleration[1] =  this.acceleration[1] + force[1]
             }
             
             seek(target){
@@ -216,11 +221,13 @@
                     return val - this.position[index]
                 })
                 //desired_vel = numpy.add(target, -this.position)
+                console.log("Vector mandado desde seek, desired_vel",desired_vel)
                 desired_vel = normalize(desired_vel)*this.max_vel
                 steering_force = desired_vel.map(function(val,index){
                     return val - this.velocity(index)
                 })
                 //steering_force = numpy.add(desired_vel, -this.velocity) //REVISAR ESTE ADD QUE HACE
+                console.log("Vector mandado desde seek, steering_force",steering_force)
                 steering_force = normalize(steering_force)*this.max_force
                 return(steering_force)
             }
@@ -248,7 +255,9 @@
                 if (closest_distance < this.dna[2+index] ){
                     seek = this.seek(closest) //# index)
                     seek *= this.dna[index]
+                    console.log("Vector mandado desde eat, seek",seek)
                     seek = normalize(seek)*this.max_force
+                    console.log("mandando aceleration con seek",seek)
                     this.apply_force(seek)
                 }
             }
@@ -272,16 +281,25 @@
                 // REVISAR ESTA CONDICION
                 if (desired != null){
                     let steer = [0,0]
+                    //console.log("desired",desired)
+                    //console.log("velocity",this.velocity)
                     steer[0] = desired[0]-this.velocity[0]
                     steer[1] = desired[1]-this.velocity[1]
-                    steer = normalize(steer)*this.max_force
+                    //console.log('steer',steer)
+                    console.log("Vector mandado desde boundaries, steer",steer)
+                    console.log("Max force es",this.max_force)
+                    let temp = normalize(steer)
+                    console.log("temp es",temp)
+                    steer[0] = temp[0]*this.max_force
+                    steer[1] = temp[1]*this.max_force
+                    console.log("mandando aceleration con steer",steer)
                     this.apply_force(steer)
                 }
             }
 
             draw_bot(){
                 // PASAR A LO QUE SEA EN JS jaja
-                console.log('Draw_bot',this.position[0],this.position[1]);
+                //console.log('Draw_bot',this.position[0],this.position[1]);
                 filled_circle(parseInt(this.position[0]),parseInt(this.position[1]),10, blue)
                 // circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[2])),Math.abs(parseInt(Math.min(2,this.dna[2]))),green)
                 // circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[3])),Math.abs(parseInt(Math.min(2,this.dna[3]))),red)
@@ -300,7 +318,7 @@
         for(let i=0; i <= 10; i++){
             let posX = Math.random()*game_width;
             let posY = Math.random()*game_height;
-            console.log("Posiciones iniciales",posX,posY)
+            //console.log("Posiciones iniciales",posX,posY)
             bots.push(new create_bot(posX,posY))
         }
 
