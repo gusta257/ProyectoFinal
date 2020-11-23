@@ -12,20 +12,37 @@
 </head>
 <body>
     <!-- D = 2012, y = 1000/403 x - 3992.55 -->
-    <canvas id="board" width="1800" height="900"></canvas>
+    <canvas id="board" width="800" height="600"></canvas>
     <!-- Logica de fuzzy -->
     <script>
         board = document.getElementById('board');
-        ctx = board.getContext('2d',{alpha: false});
+        ctx = board.getContext('2d');
+        // ctx.fillStyle = color;
+        // ctx.beginPath();
+        // ctx.arc(x,y,radius,0,2*Math.PI, false);
+        // filled_circle(25,35,40,'#003300');
+        // line(200,200,300,300,'#000800',3)
+        // ctx.fillStyle = '#008000';
+        // ctx.beginPath();
+        // ctx.arc(25,35,40,0,2*Math.PI, false);
+        // ctx.lineWidth = 5;
+        // ctx.strokeStyle = '#003300';
+        // ctx.stroke();
+        // ctx.beginPath();
+        // ctx.strokeStyle = '#D1472A';
+        // ctx.moveTo(100, 150);
+        // ctx.lineTo(450, 50);
+        // ctx.lineWidth = 15;
+        // ctx.stroke();	
         // Posiciones iniciales
         
         let game_width = 800
         let game_height = 600
-        let white = (255,255,255)
-        let black = (0,0,0)
-        let red = (255,0,0)
-        let green = (0,255,0)
-        let blue = (0,0,255)
+        let white = '#FFFFFF'
+        let black = '#000000'
+        let red = '#FF0000'
+        let green = '#00FF2A'
+        let blue = '#0032FF'
         let fps = 60
         let size = 5
         let mutation_rate = 0.2
@@ -51,22 +68,26 @@
             ctx.arc(x,y,radius,0,2*Math.PI, false);
             ctx.fillStyle = color;
             ctx.fill();
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = color;
+            ctx.stroke();
         }
 
         function circle(x,y,radius,color){
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(x,y,radius,0,2*Math.PI, false);
-
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = color;
+            ctx.stroke();
         }
 
         function render(){
-                ctx.clearRect(0, 0, board.width, board.height);
-                ctx.fillStyle = "#000000";
-                ctx.fillRect(0,0,board.width, board.height);
-                dibujarPelota(pelota.x, pelota.y);
-                dibujarPorteria();
-                dibujarJugador(jugador.x, jugador.y, 0);
+                // ctx.clearRect(0, 0, board.width, board.height);
+                // ctx.fillStyle = "#000000";
+                // ctx.fillRect(0,0,board.width, board.height);
+                filled_circle(25,35,40,'#FFFFFFF');
+                line(200,200,300,300,'#FFFFFF',3)
         }
 
         function line(x,y,x2,y2,color,width){
@@ -95,16 +116,21 @@
 
         function magnitude_calc(vector){
             x = 0
-            for(i = 0; i<= vector.length; i++){
-                x += i**2
-            }
+            console.log("Vector",vector)
+            vector.forEach(function(val,index){
+                x += val**2
+            })
+            // for(i = 0; i<= vector.length; i++){
+            //     x += i**2
+            // }
             magnitude = x**0.5
             return(magnitude)
         }
         function normalize(vector){
             magnitude = magnitude_calc(vector)
             if(magnitude != 0){
-                vector = vector/magnitude
+                vector[0] = vector[0]/magnitude
+                vector[1] = vector[1]/magnitude
             }
             return(vector)
         }
@@ -139,19 +165,23 @@
             }
 
             update(){
-                this.velocity += this.acceleration
- 
-                this.velocity = normalize(this.velocity)*this.max_vel
+                this.velocity[0] += this.acceleration[0]
+                this.velocity[1] += this.acceleration[1]
+                let normal = normalize(this.velocity)
+                this.velocity[0] = normal[0]*this.max_vel
+                this.velocity[1] = normal[1]*this.max_vel
     
-                this.position += this.velocity
-                this.acceleration *= 0
+                this.position[0] += this.velocity[0]
+                this.position[1] += this.velocity[1]
+                this.acceleration[0] *= 0
+                this.acceleration[1] *= 0
                 this.health -= 0.2
                 let percent_health = this.health/health
                 this.colour = (Math.max(Math.min((1-percent_health)*255,255),0), Math.max(Math.min(percent_health*255,255),0), 0)
                 //this.colour = lerp()
                 this.health = Math.min(health, this.health)
                 if (this.age % 1000 == 0){
-                    console.log(this.age, this.dna)
+                    // console.log(this.age, this.dna)
                 }
                 this.age += 1
 
@@ -160,6 +190,7 @@
             reproduce(){
                 if (Math.random() < reproduction_rate){
                     bots.push(new create_bot(this.position[0], this.position[1], this.dna))
+                    console.log("Me reproduje!")
                 }     
             }
             
@@ -240,7 +271,9 @@
                 }
                 // REVISAR ESTA CONDICION
                 if (desired != null){
-                    let steer = desired-this.velocity
+                    let steer = [0,0]
+                    steer[0] = desired[0]-this.velocity[0]
+                    steer[1] = desired[1]-this.velocity[1]
                     steer = normalize(steer)*this.max_force
                     this.apply_force(steer)
                 }
@@ -248,12 +281,13 @@
 
             draw_bot(){
                 // PASAR A LO QUE SEA EN JS jaja
-                filled_circle(parseInt(this.position[0]),parseInt(this.position[1]),10, this.colour)
-                circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[2])),Math.abs(parseInt(Math.min(2,this.dna[2]))),green)
-                circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[3])),Math.abs(parseInt(Math.min(2,this.dna[3]))),red)
-                line(parseInt(this.position[0]),parseInt(this.position[1]),(parseInt(this.position[0] + (this.velocity[0]*this.dna[0]*25))),green,3)
-                line(parseInt(this.position[0]),parseInt(this.position[1]),(parseInt(this.position[0] + (this.velocity[0]*this.dna[1]*25))),red,2)
-                //pygame.gfxdraw.aacircle(gameDisplay, int(self.position[0]), int(self.position[1]), 10, self.colour)
+                console.log('Draw_bot',this.position[0],this.position[1]);
+                filled_circle(parseInt(this.position[0]),parseInt(this.position[1]),10, blue)
+                // circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[2])),Math.abs(parseInt(Math.min(2,this.dna[2]))),green)
+                // circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[3])),Math.abs(parseInt(Math.min(2,this.dna[3]))),red)
+                // line(parseInt(this.position[0]),parseInt(this.position[1]),(parseInt(this.position[0] + (this.velocity[0]*this.dna[0]*25))),green,3)
+                // line(parseInt(this.position[0]),parseInt(this.position[1]),(parseInt(this.position[0] + (this.velocity[0]*this.dna[1]*25))),red,2)
+                // //pygame.gfxdraw.aacircle(gameDisplay, int(self.position[0]), int(self.position[1]), 10, self.colour)
                 //pygame.gfxdraw.filled_circle(gameDisplay, int(self.position[0]), int(self.position[1]), 10, self.colour)
                 //pygame.draw.circle(gameDisplay, green, (int(self.position[0]), int(self.position[1])), abs(int(self.dna[2])), abs(int(min(2, self.dna[2]))))
                 //pygame.draw.circle(gameDisplay, red, (int(self.position[0]), int(self.position[1])), abs(int(self.dna[3])), abs(int(min(2, self.dna[3]))))
@@ -264,16 +298,19 @@
         }
 
         for(let i=0; i <= 10; i++){
-            bots.push(new create_bot(Math.random()*game_width,Math.random()*game_height))
+            let posX = Math.random()*game_width;
+            let posY = Math.random()*game_height;
+            console.log("Posiciones iniciales",posX,posY)
+            bots.push(new create_bot(posX,posY))
         }
 
         running = true
 
-        function render(){
-                ctx.clearRect(0, 0, board.width, board.height);
-                ctx.fillStyle = "#000000";
-                ctx.fillRect(0,0,board.width, board.height);
-        }
+        // function render(){
+        //         ctx.clearRect(0, 0, board.width, board.height);
+        //         ctx.fillStyle = "#000000";
+        //         ctx.fillRect(0,0,board.width, board.height);
+        // }
 
         //while(running){
         function gameLoop(){
@@ -285,25 +322,18 @@
             if(Math.random()<0.1){
                 
                 food.push([(Math.random() * game_width-boundary_size) + boundary_size, (Math.random() * game_height-boundary_size) + boundary_size])
+                // console.log(food);
             }
                 
             if(Math.random()<0.01){
                 poison.push([(Math.random() * game_width-boundary_size) + boundary_size,(Math.random() * game_height-boundary_size) + boundary_size])
+               // console.log(poison);
             }
                 
             if(poison.length>max_poison){
-                poison.pop(0)
+                poison.shift()
             }
                 
-    
-            /*for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = false
-                #print(event)
-            */
-    
-            //print(bots[0].position)
-            //print((bots[0].position),(bots[0].position+(-size,0)),(bots[0].position+(-size/2,size)))
             bots.slice(0).reverse().map(function(bot,index){
                 bot.eat(food, 0)
                 bot.eat(poison, 1)
@@ -313,7 +343,7 @@
                 if(bot.age > oldest_ever){
                     oldest_ever = bot.age
                     oldest_ever_dna = bot.dna
-                    console.log(oldest_ever, oldest_ever_dna)
+                  //  console.log(oldest_ever, oldest_ever_dna)
                 }
                 bot.draw_bot()
                 //pygame.draw.polygon(gameDisplay, bot.colour, ((bot.position),tuple(map(operator.add,bot.position,(-size,0))),tuple(map(operator.add,bot.position,(-size/2,size)))))
@@ -323,37 +353,23 @@
                     bot.reproduce()
                 }
             })
-            // for(bot in bots[::-1]){
-            //     bot.eat(food, 0)
-            //     bot.eat(poison, 1)
-            //     bot.boundaries()
-            //     //bot.seek(pygame.mouse.get_pos())
-            //     bot.update()
-            //     if(bot.age > oldest_ever){
-            //         oldest_ever = bot.age
-            //         oldest_ever_dna = bot.dna
-            //         console.log(oldest_ever, oldest_ever_dna)
-            //     }
-            //     bot.draw_bot()
-            //     //pygame.draw.polygon(gameDisplay, bot.colour, ((bot.position),tuple(map(operator.add,bot.position,(-size,0))),tuple(map(operator.add,bot.position,(-size/2,size)))))
-            //     if(bot.dead()){
-            //         bots.remove(bot)
-            //     }else{
-            //         bot.reproduce()
-            //     }
-                    
-            //if Math.random()<0.02:
-                //bots.append(create_bot(random.uniform(0,game_width),random.uniform(0,game_height)))
+            food.forEach(function(val,index){
+                circle(parseInt(val[0]),parseInt(val[1]), 3, '#00FF1F');
+            })
+            poison.forEach(function(val,index){
+                circle(parseInt(val[0]),parseInt(val[1]), 3, '#FF0000');
+            })
+
             // REVISASR EL ELEMENTO DE ESTE FOR
-            for(let i=0;i<=food.length;i++){
-                circle((parseInt(i[0]), parseInt(i[1])), 3, 'green')
-            }
-            for(let i=0;i<=poison.length;i++){
-                circle((parseInt(i[0]), parseInt(i[1])), 3,'red')
-            }
-            render()
+            // for(let i=0;i<=food.length;i++){
+            //     circle(parseInt(i[0]), parseInt(i[1]), 3, '#00FF1F')
+            // }
+            // for(let i=0;i<=poison.length;i++){
+            //     circle(parseInt(i[0]), parseInt(i[1]), 3,'#FF0000')
+            // }
+        //    render()
             //pygame.display.update()
-            //clock.tick(fps)
+          //  clock.tick(fps)
             window.requestAnimationFrame(gameLoop);
             }
         window.requestAnimationFrame(gameLoop);
