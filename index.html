@@ -67,28 +67,28 @@
             ctx.beginPath();
             ctx.arc(x,y,radius,0,2*Math.PI, false);
             ctx.fillStyle = color;
+            ctx.strokeStyle = color;
             ctx.fill();
             ctx.lineWidth = 1;
-            ctx.strokeStyle = color;
             ctx.stroke();
         }
 
         function circle(x,y,radius,color){
             ctx.fillStyle = color;
+            ctx.strokeStyle = color;
             ctx.beginPath();
             ctx.arc(x,y,radius,0,2*Math.PI, false);
             ctx.lineWidth = 5;
-            ctx.strokeStyle = color;
             ctx.stroke();
         }
 
-        function render(){
-                // ctx.clearRect(0, 0, board.width, board.height);
-                // ctx.fillStyle = "#000000";
-                // ctx.fillRect(0,0,board.width, board.height);
-                filled_circle(25,35,40,'#FFFFFFF');
-                line(200,200,300,300,'#FFFFFF',3)
-        }
+        // function render(){
+        //         // ctx.clearRect(0, 0, board.width, board.height);
+        //         // ctx.fillStyle = "#000000";
+        //         // ctx.fillRect(0,0,board.width, board.height);
+        //         filled_circle(25,35,40,'#FFFFFFF');
+        //         line(200,200,300,300,'#FFFFFF',3)
+        // }
 
         function line(x,y,x2,y2,color,width){
             ctx.beginPath();
@@ -202,7 +202,7 @@
                 }else{
                     if(this.position[0] < game_width - boundary_size && this.position[0] > boundary_size && this.position[1] < game_height - boundary_size && this.position[1] > boundary_size){
                         food.push(this.position)
-                        return(True)
+                        return(true)
                     }
                     
                 }
@@ -286,13 +286,13 @@
                     steer[0] = desired[0]-this.velocity[0]
                     steer[1] = desired[1]-this.velocity[1]
                     //console.log('steer',steer)
-                    console.log("Vector mandado desde boundaries, steer",steer)
-                    console.log("Max force es",this.max_force)
+                    // console.log("Vector mandado desde boundaries, steer",steer)
+                    // console.log("Max force es",this.max_force)
                     let temp = normalize(steer)
-                    console.log("temp es",temp)
+                    // console.log("temp es",temp)
                     steer[0] = temp[0]*this.max_force
                     steer[1] = temp[1]*this.max_force
-                    console.log("mandando aceleration con steer",steer)
+                    // console.log("mandando aceleration con steer",steer)
                     this.apply_force(steer)
                 }
             }
@@ -301,10 +301,10 @@
                 // PASAR A LO QUE SEA EN JS jaja
                 //console.log('Draw_bot',this.position[0],this.position[1]);
                 filled_circle(parseInt(this.position[0]),parseInt(this.position[1]),10, blue)
-                // circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[2])),Math.abs(parseInt(Math.min(2,this.dna[2]))),green)
-                // circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[3])),Math.abs(parseInt(Math.min(2,this.dna[3]))),red)
-                // line(parseInt(this.position[0]),parseInt(this.position[1]),(parseInt(this.position[0] + (this.velocity[0]*this.dna[0]*25))),green,3)
-                // line(parseInt(this.position[0]),parseInt(this.position[1]),(parseInt(this.position[0] + (this.velocity[0]*this.dna[1]*25))),red,2)
+                circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[2])),Math.abs(parseInt(Math.min(2,this.dna[2]))),green)
+                circle(parseInt(this.position[0]),parseInt(this.position[1]),Math.abs(parseInt(this.dna[3])),Math.abs(parseInt(Math.min(2,this.dna[3]))),red)
+                line(parseInt(this.position[0]),parseInt(this.position[1]),(parseInt(this.position[0] + (this.velocity[0]*this.dna[0]*25))),green,3)
+                line(parseInt(this.position[0]),parseInt(this.position[1]),(parseInt(this.position[0] + (this.velocity[0]*this.dna[1]*25))),red,2)
                 // //pygame.gfxdraw.aacircle(gameDisplay, int(self.position[0]), int(self.position[1]), 10, self.colour)
                 //pygame.gfxdraw.filled_circle(gameDisplay, int(self.position[0]), int(self.position[1]), 10, self.colour)
                 //pygame.draw.circle(gameDisplay, green, (int(self.position[0]), int(self.position[1])), abs(int(self.dna[2])), abs(int(min(2, self.dna[2]))))
@@ -324,14 +324,15 @@
 
         running = true
 
-        // function render(){
-        //         ctx.clearRect(0, 0, board.width, board.height);
-        //         ctx.fillStyle = "#000000";
-        //         ctx.fillRect(0,0,board.width, board.height);
-        // }
+        function render(){
+                ctx.clearRect(0, 0, board.width, board.height);
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(0,0,board.width, board.height);
+        }
 
         //while(running){
         function gameLoop(){
+            render()
             //gameDisplay.fill(black)
             if(bots.length<1 || Math.random() < 0.0001){
                 bots.push(new create_bot(Math.random()*game_width,Math.random()*game_height))
@@ -366,7 +367,7 @@
                 bot.draw_bot()
                 //pygame.draw.polygon(gameDisplay, bot.colour, ((bot.position),tuple(map(operator.add,bot.position,(-size,0))),tuple(map(operator.add,bot.position,(-size/2,size)))))
                 if(bot.dead()){
-                    bots.remove(bot)
+                    bots.splice(bot)
                 }else{
                     bot.reproduce()
                 }
@@ -385,7 +386,6 @@
             // for(let i=0;i<=poison.length;i++){
             //     circle(parseInt(i[0]), parseInt(i[1]), 3,'#FF0000')
             // }
-        //    render()
             //pygame.display.update()
           //  clock.tick(fps)
             window.requestAnimationFrame(gameLoop);
